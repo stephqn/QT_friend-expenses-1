@@ -13,6 +13,7 @@
 #include <QVBoxLayout>
 #include <QFormLayout>
 #include <QMessageBox>
+#include <QComboBox>
 #include <QFileDialog>
 #include <QLabel>
 #include <QTextEdit>
@@ -22,7 +23,6 @@
 #include "Person.hpp"
 #include "Donor.hpp"
 #include <string>
-#include "FenetreResultat.hpp"
 #include <iomanip>
 #include <cstdlib>
 
@@ -34,16 +34,24 @@ class FenetrePrincipale : public QWidget // On hérite de QWidget (IMPORTANT)
 
     public:
     FenetrePrincipale();
+    QString fichier;
+    QComboBox *liste;
+    QLineEdit *nom;
+    QDialog *d = new QDialog();
+    int flag = 0;
 
     public slots:
     void ouvrirDialogueQuit();
     void ouvrirDialogueCSV();
     void createGroup(QVector<Group>& Groups);
     void Afficher(QVector<Group>& Groups);
+    void FenetreAjouterCSV();
+    void AjouterCSV();
 
     private:
     QPushButton *m_boutonOuvrir;
     QPushButton *m_boutonQuit;
+    QPushButton *m_boutonAjouter;
     QLabel *mlabel;
     QTextEdit *test;
     QString line;
@@ -52,6 +60,13 @@ class FenetrePrincipale : public QWidget // On hérite de QWidget (IMPORTANT)
     QVBoxLayout *layoutPrincipal;
     QVector<Person*> _vPerson;
     QVector<QString> _list_group;
+
+    //Ajouter ligne
+    QLineEdit *phone;
+    QLineEdit *depense;
+    QLineEdit *nomdugroupe;
+    QPushButton *boutonAjouter;
+    QPushButton * boutonfermer;
 };
 
 #endif

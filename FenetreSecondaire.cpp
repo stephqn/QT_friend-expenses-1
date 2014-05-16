@@ -1,5 +1,6 @@
 #include "FenetreSecondaire.hpp"
 #include "Csv.hpp"
+#include "FenetrePrincipale.hpp"
 
 FenetreSecondaire::FenetreSecondaire() : QWidget()
 {
@@ -36,12 +37,17 @@ FenetreSecondaire::FenetreSecondaire() : QWidget()
     setLayout(layoutPrincipal);
 
     //Action
+    //QString *fichier;
     QWidget::connect(boutonAjouter, SIGNAL(clicked()), this, SLOT(ajouterCSV()));
 
 }
 
 void FenetreSecondaire::ajouterCSV()
 {
-  QPushButton *boutonAjouter2 = new QPushButton("Ajouter");
+  //QString *fichier;
+  //QFile lesDonnees(*fichier);
+  //if(lesDonnees.open(QIODevice::ReadOnly | QIODevice::Text))
+  //{
+  //}
 
 }

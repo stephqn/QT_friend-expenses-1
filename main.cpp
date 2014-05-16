@@ -42,11 +42,10 @@ int main(int argc, char **argv)
 
     FenetrePrincipale fenetre;//Fenetre principal
     FenetreSecondaire fenetre2;//Fenetre secondaire
-    FenetreResultat fenetre3;//Fenetre resultat
 
     // Affichage de la fenêtre
     fenetre.show();
-    fenetre2.show();
+    //fenetre2.show();
 
     return app.exec();
 }

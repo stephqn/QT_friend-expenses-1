@@ -5,24 +5,26 @@ using namespace std;
 FenetrePrincipale::FenetrePrincipale() : QWidget()
 {
     //Edit des propriétés de la fenetre
-    //setFixedSize(300, 400);
+    setFixedSize(600, 700);
     //setGeometry(450, 300, 300, 400);
     setWindowIcon(QIcon("depense.png"));
     setWindowTitle("Friend Expenses V1.0");
-    setGeometry(100, 100, 600, 700);
+    //setGeometry(100, 100, 600, 700);
 
     // Construction des widgets
-    m_boutonOuvrir = new QPushButton("Ouvrir le fichier CSV", this);
-    m_boutonQuit = new QPushButton("Quitter", this);
+    m_boutonOuvrir = new QPushButton("&Ouvrir le fichier CSV", this);
+    m_boutonQuit = new QPushButton("&Quitter", this);
+    m_boutonAjouter = new QPushButton("A&jouter", this);
     mlabel= new QLabel("Pas de fichier chargé", this);
     test = new QTextEdit();
-    test->setReadOnly(1);
 
     // Personnalisation des widgets
     m_boutonOuvrir->setCursor(Qt::PointingHandCursor);
     m_boutonOuvrir->setIcon(QIcon("dossier.jpg"));
     mlabel->setGeometry(QRect(10, 70, 300, 20));
     mlabel->setAlignment(Qt::AlignHCenter | Qt::AlignTop);
+    test->setReadOnly(1);
+    m_boutonAjouter->setEnabled(0);
     //m_boutonOuvrir->move(60, 20);
     //m_boutonQuit->move(110, 160);
 
@@ -30,12 +32,14 @@ FenetrePrincipale::FenetrePrincipale() : QWidget()
     layoutPrincipal->addWidget(m_boutonOuvrir);
     layoutPrincipal->addWidget(mlabel);
     layoutPrincipal->addWidget(test);
+    layoutPrincipal->addWidget(m_boutonAjouter);
     layoutPrincipal->addWidget(m_boutonQuit);
     setLayout(layoutPrincipal);
 
     // Connexion du clic du bouton à la fermeture de l'application
     QObject::connect(m_boutonQuit, SIGNAL(clicked()), this, SLOT(ouvrirDialogueQuit()));
     QObject::connect(m_boutonOuvrir, SIGNAL(clicked()), this, SLOT(ouvrirDialogueCSV()));
+    QObject::connect(m_boutonAjouter, SIGNAL(clicked()), this, SLOT(FenetreAjouterCSV()));
 }
 
 void FenetrePrincipale::ouvrirDialogueQuit()
@@ -53,12 +57,14 @@ void FenetrePrincipale::ouvrirDialogueQuit()
 
 void FenetrePrincipale::ouvrirDialogueCSV()
 {
-    QString fichier = QFileDialog::getOpenFileName(this, "Ouvrir un fichier", QString(), "CSV (*.csv)");
+    test->setText("");
+    fichier = QFileDialog::getOpenFileName(this, "Ouvrir un fichier", QString(), "CSV (*.csv)");
     QMessageBox::information(this, "Fichier", "Vous avez sélectionné :\n" + fichier);
     mlabel->setText("<html><u><b>fichier</u></b> : </html>" + fichier);
     mlabel->setWordWrap(true);
     mlabel->setGeometry(QRect(10, 60, 280, 100));
     mlabel->setAlignment(Qt::AlignHCenter | Qt::AlignTop);
+    m_boutonAjouter->setEnabled(1);
     QFile lesDonnees(fichier);
     if(lesDonnees.open(QIODevice::ReadOnly | QIODevice::Text))
     {
@@ -110,7 +116,6 @@ void FenetrePrincipale::ouvrirDialogueCSV()
             _vPerson.push_back(aPerson); // contient toutes les personnes
         }
         lesDonnees.close();
-
         QVector<Group> Groups;
         createGroup(Groups);
         Afficher(Groups);
@@ -196,3 +201,61 @@ void FenetrePrincipale::Afficher(QVector<Group>& Groups)
             color_indexer++;
     }
 }
+
+void FenetrePrincipale::FenetreAjouterCSV()
+{
+    d = new QDialog();
+    d->setWindowTitle("Ajouter un utilisateur");
+
+    //QlineEdit & QPushButton
+    nom = new QLineEdit;
+    phone = new QLineEdit;
+    depense = new QLineEdit;
+    nomdugroupe = new QLineEdit;
+    QPushButton *boutonAjouter = new QPushButton("&Ajouter");
+    QPushButton * boutonfermer = new QPushButton("&Fermer");
+
+    //ComboBox
+    liste = new QComboBox(d);
+    liste->addItem("Donor");
+    liste->addItem("Person");
+
+    //Layout formulaire
+    QFormLayout *formLayout2 = new QFormLayout(d);
+    formLayout2->addRow("Votre nom", nom);
+    formLayout2->addRow("Votre telephone", phone);
+    formLayout2->addRow("Votre dépense", depense);
+    formLayout2->addRow("Votre nom de groupe", nomdugroupe);
+    formLayout2->addRow("Votre type", liste);
+    formLayout2->addWidget(boutonAjouter);
+    formLayout2->addWidget(boutonfermer);
+
+    QObject::connect(boutonfermer, SIGNAL(clicked()), d, SLOT(close()));
+    QObject::connect(boutonAjouter, SIGNAL(clicked()), this, SLOT(AjouterCSV()));
+
+    d->show();
+}
+
+void FenetrePrincipale::AjouterCSV()
+
+{
+    QFile lesDonnees2(fichier);
+    if(!lesDonnees2.open(QIODevice::WriteOnly | QIODevice::Text | QIODevice::Append))
+        return;
+    QTextStream flux(&lesDonnees2);
+    flux.setCodec("UTF-8");
+    if(nom->text()!="" && phone->text()!="" && depense->text()!="" && nomdugroupe->text()!="")
+    {
+        flux << nom->text() + "," +
+                phone->text() + "," +
+                depense->text() + "," +
+                nomdugroupe->text() + "," +
+                liste->currentText() + "\n" ;
+        d->close();
+    }
+    else
+        QMessageBox::critical(d, "Erreur", "Vous n'avez pas tout renseigné");
+
+    lesDonnees2.close();
+}
+
