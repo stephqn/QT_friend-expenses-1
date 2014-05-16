@@ -42,10 +42,11 @@ class FenetrePrincipale : public QWidget // On hérite de QWidget (IMPORTANT)
     public slots:
     void ouvrirDialogueQuit();
     void ouvrirDialogueCSV();
-    void createGroup(QVector<Group>& Groups);
-    void Afficher(QVector<Group>& Groups);
+    void createGroup();
+    void Afficher();
     void FenetreAjouterCSV();
     void AjouterCSV();
+    void Load();
 
     private:
     QPushButton *m_boutonOuvrir;
