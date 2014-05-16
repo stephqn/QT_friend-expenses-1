@@ -3,7 +3,6 @@ CONFIG += console
 
 HEADERS += \
     Arg.hpp \
-    Csv.hpp \
     Donor.hpp \
     Person.hpp \
     Group.hpp \
@@ -12,7 +11,6 @@ HEADERS += \
 
 SOURCES += \
     Arg.cpp \
-    Csv.cpp \
     Group.cpp \
     Donor.cpp \
     Person.cpp \

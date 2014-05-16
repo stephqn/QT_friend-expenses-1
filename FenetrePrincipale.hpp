@@ -38,7 +38,6 @@ class FenetrePrincipale : public QWidget // On hérite de QWidget (IMPORTANT)
     QComboBox *liste;
     QLineEdit *nom;
     QDialog *d = new QDialog();
-    int flag = 0;
 
     public slots:
     void ouvrirDialogueQuit();
@@ -53,13 +52,14 @@ class FenetrePrincipale : public QWidget // On hérite de QWidget (IMPORTANT)
     QPushButton *m_boutonQuit;
     QPushButton *m_boutonAjouter;
     QLabel *mlabel;
-    QTextEdit *test;
+    QTextEdit *debug;
     QString line;
     QStringList listeDeMots;
     QFormLayout *Layout;
     QVBoxLayout *layoutPrincipal;
     QVector<Person*> _vPerson;
     QVector<QString> _list_group;
+    QVector<Group> Groups;
 
     //Ajouter ligne
     QLineEdit *phone;

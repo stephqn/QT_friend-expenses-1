@@ -16,14 +16,14 @@ FenetrePrincipale::FenetrePrincipale() : QWidget()
     m_boutonQuit = new QPushButton("&Quitter", this);
     m_boutonAjouter = new QPushButton("A&jouter", this);
     mlabel= new QLabel("Pas de fichier chargé", this);
-    test = new QTextEdit();
+    debug = new QTextEdit();
 
     // Personnalisation des widgets
     m_boutonOuvrir->setCursor(Qt::PointingHandCursor);
     m_boutonOuvrir->setIcon(QIcon("dossier.jpg"));
     mlabel->setGeometry(QRect(10, 70, 300, 20));
     mlabel->setAlignment(Qt::AlignHCenter | Qt::AlignTop);
-    test->setReadOnly(1);
+    debug->setReadOnly(1);
     m_boutonAjouter->setEnabled(0);
     //m_boutonOuvrir->move(60, 20);
     //m_boutonQuit->move(110, 160);
@@ -31,7 +31,7 @@ FenetrePrincipale::FenetrePrincipale() : QWidget()
     QVBoxLayout *layoutPrincipal = new QVBoxLayout;
     layoutPrincipal->addWidget(m_boutonOuvrir);
     layoutPrincipal->addWidget(mlabel);
-    layoutPrincipal->addWidget(test);
+    layoutPrincipal->addWidget(debug);
     layoutPrincipal->addWidget(m_boutonAjouter);
     layoutPrincipal->addWidget(m_boutonQuit);
     setLayout(layoutPrincipal);
@@ -57,14 +57,32 @@ void FenetrePrincipale::ouvrirDialogueQuit()
 
 void FenetrePrincipale::ouvrirDialogueCSV()
 {
-    test->setText("");
+    QVector<Group> Groups;
+    //Reset si réouverture
+    for(QVector<Group>::iterator it = Groups.begin(); it != Groups.end(); ++it)
+    {
+        int exp = it->expensesPerPerson();
+        for (size_t i=0; i < it->size(); ++i)
+        {
+            // operate the payback first
+            (*it)[i]->operatePayback(exp);
+            (*it)[i]->setName("");
+            (*it)[i]->setPhoneNumber("");
+            (*it)[i]->setExpenses(0);
+            (*it)[i]->setPayback(0);
+            it->setGroupName("");
+            //(*it)[i]->setType("");
+        }
+    }
+
+    debug->setText("");
     fichier = QFileDialog::getOpenFileName(this, "Ouvrir un fichier", QString(), "CSV (*.csv)");
     QMessageBox::information(this, "Fichier", "Vous avez sélectionné :\n" + fichier);
     mlabel->setText("<html><u><b>fichier</u></b> : </html>" + fichier);
     mlabel->setWordWrap(true);
     mlabel->setGeometry(QRect(10, 60, 280, 100));
     mlabel->setAlignment(Qt::AlignHCenter | Qt::AlignTop);
-    m_boutonAjouter->setEnabled(1);
+    m_boutonAjouter->setEnabled(1);    
     QFile lesDonnees(fichier);
     if(lesDonnees.open(QIODevice::ReadOnly | QIODevice::Text))
     {
@@ -116,7 +134,7 @@ void FenetrePrincipale::ouvrirDialogueCSV()
             _vPerson.push_back(aPerson); // contient toutes les personnes
         }
         lesDonnees.close();
-        QVector<Group> Groups;
+
         createGroup(Groups);
         Afficher(Groups);
     }
@@ -148,6 +166,23 @@ int nbDonor = 0, _nbPersPerGroup;
         nbDonor = 0;
         Groups.push_back(aGroup);
     }
+    //iterate over persons to check for multiple expenses
+    //two persons are considerated as the same when the name and the phone # is the same
+    for(QVector<Group>::iterator it = Groups.begin(); it != Groups.end(); ++it)
+    {
+        for (size_t i=0; i < it->size(); ++i)
+        {
+            for(size_t j=0; j < it->size(); ++j)
+            {
+            if(i!=j && (*it)[i]->getName() == (*it)[j]->getName() && (*it)[i]->getPhoneNumber() == (*it)[j]->getPhoneNumber() )
+                {
+                (*it)[i]->setExpenses((*it)[i]->getExpenses() + (*it)[j]->getExpenses());
+                //we found two persons. Now remove the second one from the vector
+                it->erase(it->begin()+j);
+                }
+            }
+        }
+    }
 }
 
 void FenetrePrincipale::Afficher(QVector<Group>& Groups)
@@ -158,16 +193,16 @@ void FenetrePrincipale::Afficher(QVector<Group>& Groups)
 
     for(int i=1; i<Groups.size(); i++)
     {
-        test->append("Total expenses for group <FONT color=blue>" + Groups[i].getGroupName() + " </FONT>: <FONT color=red>" + QString::number((double)Groups[i].totalExpenses()) + "</FONT>");
+        debug->append("Total expenses for group <FONT color=blue>" + Groups[i].getGroupName() + " </FONT>: <FONT color=red>" + QString::number((double)Groups[i].totalExpenses()) + "</FONT>");
 
         aExpensesPerPerson = Groups[i].expensesPerPerson();
 
-        test->append("Average expenses per person : <FONT color=yellow>" + QString::number((double)aExpensesPerPerson) + "</FONT>");
-        test->append("");
+        debug->append("Average expenses per person : <FONT color=yellow>" + QString::number((double)aExpensesPerPerson) + "</FONT>");
+        debug->append("");
     }
 
-        test->append("Name\tPhone\tExpenses\tPayback\tGroup\tType");
-        test->append("-----------------------------------------------------------------------------------------------------");
+        debug->append("Name\tPhone\tExpenses\tPayback\tGroup\tType");
+        debug->append("-----------------------------------------------------------------------------------------------------");
 
 
     for(QVector<Group>::iterator it = Groups.begin(); it != Groups.end(); ++it)
@@ -178,7 +213,7 @@ void FenetrePrincipale::Afficher(QVector<Group>& Groups)
             // operate the payback first
             (*it)[i]->operatePayback(exp);
             // display the values
-            test->append(
+            debug->append(
                         "<pre><FONT size =2 color=" + colors[color_indexer] + ">"
                         + (*it)[i]->getName()+ "</FONT>" + "\t"
                         "<FONT size =2 color=" + colors[color_indexer] + ">"
@@ -194,7 +229,7 @@ void FenetrePrincipale::Afficher(QVector<Group>& Groups)
                         + "</FONT></pre>");
 
         }
-        test->append("");
+        debug->append("");
         if(color_indexer==NB_MAX_COLOR-1)
             color_indexer=0;
         else
@@ -237,7 +272,6 @@ void FenetrePrincipale::FenetreAjouterCSV()
 }
 
 void FenetrePrincipale::AjouterCSV()
-
 {
     QFile lesDonnees2(fichier);
     if(!lesDonnees2.open(QIODevice::WriteOnly | QIODevice::Text | QIODevice::Append))
@@ -252,10 +286,82 @@ void FenetrePrincipale::AjouterCSV()
                 nomdugroupe->text() + "," +
                 liste->currentText() + "\n" ;
         d->close();
+
+        /*for(QVector<Group>::iterator it = Groups.begin(); it != Groups.end(); ++it)
+        {
+            int exp = it->expensesPerPerson();
+            for (size_t i=0; i < it->size(); ++i)
+            {
+                // operate the payback first
+                (*it)[i]->operatePayback(exp);
+                (*it)[i]->setName("");
+                (*it)[i]->setPhoneNumber("");
+                (*it)[i]->setExpenses(0);
+                (*it)[i]->setPayback(0);
+                it->setGroupName("");
+                //(*it)[i]->setType("");
+            }
+        }
+        debug->setText("");
+        QFile lesDonnees(fichier);
+        if(lesDonnees.open(QIODevice::ReadOnly | QIODevice::Text))
+        {
+            QTextStream flux(&lesDonnees);
+            while(!flux.atEnd())
+            {
+                QVector<QString> person;
+                QString line = flux.readLine();
+                listeDeMots = line.split(",");
+                person.push_back(line);
+
+                Person *aPerson = new Person;
+                if (listeDeMots.at(4) == "Person")
+                {
+                    aPerson = new Person;
+                    aPerson->setName(listeDeMots.at(0));
+                    aPerson->setPhoneNumber(listeDeMots.at(1));
+                    aPerson->setExpenses(listeDeMots.at(2).toDouble());
+                    aPerson->setGroupName(listeDeMots.at(3));
+                    aPerson->setType();
+                }
+                if (listeDeMots.at(4) == "Donor")
+                {
+                    aPerson = new Donor;
+                    aPerson->setName(listeDeMots.at(0));
+                    aPerson->setPhoneNumber(listeDeMots.at(1));
+                    aPerson->setExpenses(listeDeMots.at(2).toDouble());
+                    aPerson->setGroupName(listeDeMots.at(3));
+                    aPerson->setType();
+                }
+                bool group_status;
+
+                if (_list_group.size() == 0)
+                    _list_group.push_back(listeDeMots.at(3));
+                for (int i = 0; i < _list_group.size(); i++)
+                {
+                    if (_list_group[i] == listeDeMots.at(3)) //group existe deja
+                    {
+                        group_status = true;
+                        break;
+                    }
+                    else
+                        group_status = false;
+                }
+                    if (!group_status)
+                    {
+                        _list_group.push_back(listeDeMots.at(3)); // contient le nom des groupes
+                    }
+                _vPerson.push_back(aPerson); // contient toutes les personnes
+            }
+            lesDonnees.close();
+        }
+            createGroup(Groups);
+            Afficher(Groups);*/
     }
     else
         QMessageBox::critical(d, "Erreur", "Vous n'avez pas tout renseigné");
 
     lesDonnees2.close();
 }
+
 
